@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify_content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .category {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .category h2 {
+            font-size: 20px;
+            color: var(--tg-theme-text-color, #000);
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        img {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            align-self: center;
+        }
+        h3 {
+            margin: 10px 0;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--tg-theme-text-color, #000);
+            margin: 10px 0;
+        }
+        .card p {
+            flex-grow: 1;
+            color: var(--tg-theme-hint-color, #888);
+            margin-bottom: 15px;
+        }
+        .stock-count {
+            background-color: #e0e0e0;
+            color: var(--tg-theme-text-color, #000);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .stock-count.out-of-stock {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+        button {
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: auto;
+            transition: filter 0.2s ease;
+        }
+        button:hover {
+            filter: brightness(1.1);
+        }
+        button:disabled {
+            background-color: var(--tg-theme-secondary-bg-color, #e0e0e0);
+            color: var(--tg-theme-hint-color, #9e9e9e);
+            cursor: not-allowed;
+        }
+        button:disabled:hover {
+            filter: none;
+        }
+    </style>
+    <!-- ដាក់ Script របស់ Telegram Web App ជាចាំបាច់ -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h1 style="font-size: 24px; margin-bottom: 15px; color: var(--tg-theme-text-color, #000);">🛍️ ហាងលក់គណនីឌីជីថល</h1>
+    <div id="product-list">
+        <!-- Product cards will be loaded here by JavaScript -->
+        <p style="text-align: center; color: var(--tg-theme-hint-color, #888);">កំពុងទាញយកទិន្នន័យ...</p>
+    </div>
+
+    <script>
+        // ហៅយក Object របស់ Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        
+        // ពង្រីកអេក្រង់ឱ្យពេញ (Expand)
+        tg.expand();
+
+        // URL របស់ Bot backend (ត្រូវតែជា URL សាធារណៈដែលបានពី Hosting ដូចជា Render)
+        // ឧទាហរណ៍៖ https://your-bot-name.onrender.com
+        const backendUrl = 'https://my-shop-bot-backend-1.onrender.com';
+
+        // មុខងារទាញយក និងបង្ហាញផលិតផល
+        async function loadProducts() {
+            const productListDiv = document.getElementById('product-list');
+            try {
+                const response = await fetch(`${backendUrl}/products`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const products = await response.json();
+                productListDiv.innerHTML = ''; // លុបអក្សរ "កំពុងទាញយក..."
+
+                for (const categoryName in products) {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
+
+                    const categoryTitle = document.createElement('h2');
+                    categoryTitle.innerHTML = categoryName;
+                    categoryDiv.appendChild(categoryTitle);
+
+                    const containerDiv = document.createElement('div');
+                    containerDiv.className = 'container';
+
+                    if (products[categoryName].length === 0) {
+                        const noProductText = document.createElement('p');
+                        noProductText.innerText = 'មិនទាន់មានផលិតផល';
+                        noProductText.style.color = 'var(--tg-theme-hint-color, #888)';
+                        containerDiv.appendChild(noProductText);
+                    } else {
+                        products[categoryName].forEach(product => {
+                            const isOutOfStock = product.stockCount === 0;
+                            const stockText = isOutOfStock ? 'អស់ស្តុកហើយ' : `នៅសល់: ${product.stockCount} គណនី`;
+                            const stockClass = isOutOfStock ? 'stock-count out-of-stock' : 'stock-count';
+                            const buttonDisabled = isOutOfStock ? 'disabled' : '';
+                            const buttonText = isOutOfStock ? 'អស់ស្តុក' : 'ទិញឥឡូវនេះ 🛒';
+
+                            const cardHTML = `
+                                <div class="card">
+                                    <img src="${product.imageUrl}" alt="${product.name}">
+                                    <h3>${product.name}</h3>
+                                    <p>${product.description}</p>
+                                    <div class="price">$${product.price}</div>
+                                    <div class="${stockClass}">${stockText}</div>
+                                    <button onclick="buyItem('${product.name}', '${product.price}', ${product.stockCount})" ${buttonDisabled}>${buttonText}</button>
+                                </div>
+                            `;
+                            containerDiv.innerHTML += cardHTML;
+                        });
+                    }
+                    
+                    categoryDiv.appendChild(containerDiv);
+                    productListDiv.appendChild(categoryDiv);
+                }
+
+            } catch (error) {
+                console.error('Failed to load products:', error);
+                productListDiv.innerHTML = '<p style="text-align: center; color: red;">មិនអាចទាញយកទិន្នន័យបានទេ។ សូមព្យាយាមម្តងទៀត។</p>';
+            }
+        }
+
+        // មុខងារផ្ញើទិន្នន័យទៅ Bot ពេលចុចទិញ
+        function buyItem(item, price, stockCount) {
+            if (stockCount === 0) {
+                tg.showAlert('សុំទោស! ផលិតផលនេះអស់ស្តុកហើយ។');
+                return;
+            }
+            const data = {
+                item: item,
+                price: price
+            };
+            tg.sendData(JSON.stringify(data));
+        }
+
+        // ហៅមុខងារដើម្បីចាប់ផ្តើមទាញយកផលិតផលពេលទំព័របើក
+        document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+</body>
+</html>
