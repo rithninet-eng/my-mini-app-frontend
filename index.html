@@ -2,319 +2,381 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Digital Store</title>
     <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #2481cc);
+            --tg-button: var(--tg-theme-button-color, #2481cc);
+            --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f1f1f1);
+        }
+
         body {
-            font-family: sans-serif;
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify_content: center;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
             margin: 0;
+            padding: 0;
+            padding-bottom: 75px; /* Space for bottom navbar */
         }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            padding: 20px;
+
+        /* Main Content Area */
+        main {
+            padding: 15px;
         }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        h1, h2 {
+            color: var(--tg-text);
+            margin-top: 0;
+            padding-left: 5px;
+        }
+
+        /* Product List */
         .category {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .category h2 {
-            font-size: 20px;
-            color: var(--tg-theme-text-color, #000);
-            padding: 0 20px;
+            font-size: 1.2em;
             margin-bottom: 10px;
+            border-left: 4px solid var(--tg-link);
+            padding-left: 10px;
         }
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
         .card {
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            background-color: var(--tg-secondary-bg);
             border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            max-width: 300px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            padding: 15px;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        .card:active {
+            transform: scale(0.98);
         }
-        img {
-            width: 70px;
-            height: 70px;
-            border-radius: 15px;
+        .card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
             margin-bottom: 10px;
-            align-self: center;
         }
-        h3 {
-            margin: 10px 0;
+        .card h3 {
+            font-size: 1em;
+            margin: 5px 0;
+            flex-grow: 1;
+            line-height: 1.3;
         }
         .price {
-            font-size: 24px;
+            font-size: 1.2em;
             font-weight: bold;
-            color: var(--tg-theme-text-color, #000);
-            margin: 10px 0;
+            color: var(--tg-text);
+            margin: 5px 0;
         }
-        .card p {
-            flex-grow: 1;
-            color: var(--tg-theme-hint-color, #888);
-            margin-bottom: 15px;
-        }
-        .stock-count {
-            background-color: #e0e0e0;
-            color: var(--tg-theme-text-color, #000);
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-        .stock-count.out-of-stock {
-            background-color: #ffcdd2;
-            color: #c62828;
-        }
+
         button {
-            background-color: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
+            background-color: var(--tg-button);
+            color: var(--tg-button-text);
             border: none;
-            padding: 12px 25px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 0.9em;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
             margin-top: auto;
-            transition: filter 0.2s ease;
+            transition: background-color 0.2s ease;
         }
-        button:hover {
-            filter: brightness(1.1);
-        }
+
         button:disabled {
-            background-color: var(--tg-theme-secondary-bg-color, #e0e0e0);
-            color: var(--tg-theme-hint-color, #9e9e9e);
+            background-color: var(--tg-secondary-bg);
+            color: var(--tg-hint);
             cursor: not-allowed;
         }
-        button:disabled:hover {
-            filter: none;
-        }
-        .quantity-selector {
+
+        /* Bottom Navbar */
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--tg-secondary-bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
-        .quantity-selector button {
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            margin: 0;
-            padding: 0;
+        .nav-link {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--tg-hint);
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s ease;
         }
-        .quantity-selector span {
-            margin: 0 15px;
-            font-size: 18px;
-            font-weight: bold;
+        .nav-link.active {
+            color: var(--tg-link);
         }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            display: none;
+        .nav-link svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            padding: 50px;
         }
-        .modal-content {
-            background-color: var(--tg-theme-bg-color, #fff);
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
+        .loader {
+            border: 4px solid var(--tg-secondary-bg);
+            border-top: 4px solid var(--tg-link);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Profile Page Styles */
+        #profile-info p {
+            background-color: var(--tg-secondary-bg);
+            padding: 15px;
+            border-radius: 8px;
         }
     </style>
     <!-- ដាក់ Script របស់ Telegram Web App ជាចាំបាច់ -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <h1 style="font-size: 24px; margin-bottom: 15px; color: var(--tg-theme-text-color, #000);">🛍️ ហាងលក់គណនីឌីជីថល</h1>
-    <div id="product-list">
-        <!-- Product cards will be loaded here by JavaScript -->
-        <p style="text-align: center; color: var(--tg-theme-hint-color, #888);">កំពុងទាញយកទិន្នន័យ...</p>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h4>សូមស្កេនដើម្បីបង់ប្រាក់</h4>
-            <img id="qr-code-img" src="https://pay.ababank.com/cv3/qr_code_placeholder.png" alt="QR Code" style="width: 100%; max-width: 250px; border-radius: 8px;">
-            <p><b>តម្លៃសរុប:</b> <span id="total-price"></span></p>
-            <p><b>ពេលវេលា:</b> <span id="countdown-timer">05:00</span></p>
-            <button id="confirm-payment-btn">ខ្ញុំបានបង់ប្រាក់ហើយ</button>
+    <!-- Main content area that will scroll -->
+    <main id="main-content">
+        <!-- Page for Home/Products -->
+        <div id="home-page" class="page active">
+            <h1>Smart Tech Store</h1>
+            <div id="product-list">
+                <div class="loader-container"><div class="loader"></div></div>
+            </div>
         </div>
-    </div>
+
+        <!-- Page for Orders -->
+        <div id="orders-page" class="page">
+            <h1>🛒 ការបញ្ជាទិញរបស់ខ្ញុំ</h1>
+            <div id="order-list">
+                <!-- Order history will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Page for Profile -->
+        <div id="profile-page" class="page">
+            <h1>👤 គណនីរបស់ខ្ញុំ</h1>
+            <div id="profile-info">
+                <!-- User info will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Fixed Bottom Navbar -->
+    <nav class="bottom-nav">
+        <a href="#home" class="nav-link active" data-page="home-page">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M21 20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.49a1 1 0 0 1 .386-.79l8-6.222a1 1 0 0 1 1.228 0l8 6.222a1 1 0 0 1 .386.79V20zm-2-1V9.978l-7-5.444-7 5.444V19h14zM8 15h2v4H8v-4zm3 0h2v4h-2v-4zm3 0h2v4h-2v-4z"/></svg>
+            <span>ហាង</span>
+        </a>
+        <a href="#orders" class="nav-link" data-page="orders-page">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 18c4.42 0 8-3.58 8-8s-3.58-8-8-8-8 3.58-8 8 3.58 8 8 8zm1-12h-2v4h4v-2h-2V8zm4.25 2.59l1.41-1.41 1.41 1.41-1.41 1.41-1.41-1.41z"/></svg>
+            <span>ការបញ្ជាទិញ</span>
+        </a>
+        <a href="#profile" class="nav-link" data-page="profile-page">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2zm-8-9a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+            <span>គណនី</span>
+        </a>
+    </nav>
 
     <script>
         // ហៅយក Object របស់ Telegram WebApp
         let tg = window.Telegram.WebApp;
         
-        // ពង្រីកអេក្រង់ឱ្យពេញ (Expand)
+        // ពង្រីកអេក្រង់ឱ្យពេញ និងបើក theme
         tg.expand();
+        tg.ready();
+ 
+        // URL របស់ Bot backend (យក URL ដែលបានពី Render មកដាក់នៅទីនេះ)
+        // ចំណាំ៖ សូមប្រាកដថាអ្នកបាន Deploy bot.js របស់អ្នក ហើយដាក់ URL ពិតប្រាកដនៅទីនេះ
+        const backendUrl = 'https://rithninet-eng.onrender.com'; // << ត្រូវកែប្រែ!
 
-        // URL របស់ Bot backend (ត្រូវតែជា URL សាធារណៈដែលបានពី Hosting ដូចជា Render)
-        // ឧទាហរណ៍៖ https://your-bot-name.onrender.com
-        const backendUrl = 'https://my-shop-bot-backend-1.onrender.com';
+        // --- Navigation Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // Load initial page content
+            loadProducts();
 
-        // មុខងារទាញយក និងបង្ហាញផលិតផល
+            // Handle navigation clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.dataset.page;
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    showPage(pageId);
+
+                    // Load content for the newly selected page
+                    if (pageId === 'orders-page') {
+                        loadOrders();
+                    } else if (pageId === 'profile-page') {
+                        loadProfile();
+                    }
+                });
+            });
+        });
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            const newPage = document.getElementById(pageId);
+            if (newPage) {
+                newPage.classList.add('active');
+            }
+        }
+
+        // --- Content Loading Logic ---
         async function loadProducts() {
             const productListDiv = document.getElementById('product-list');
+            productListDiv.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; // Show loader
+
             try {
                 const response = await fetch(`${backendUrl}/products`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 
                 const products = await response.json();
-                productListDiv.innerHTML = ''; // លុបអក្សរ "កំពុងទាញយក..."
+                productListDiv.innerHTML = ''; // លុប loader
+
+                if (Object.keys(products).length === 0) {
+                    productListDiv.innerHTML = '<p style="text-align: center; color: var(--tg-hint);">មិនទាន់មានផលិតផលសម្រាប់លក់ទេ។</p>';
+                    return;
+                }
 
                 for (const categoryName in products) {
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'category';
 
                     const categoryTitle = document.createElement('h2');
-                    categoryTitle.innerHTML = categoryName;
+                    categoryTitle.textContent = categoryName;
                     categoryDiv.appendChild(categoryTitle);
 
-                    const containerDiv = document.createElement('div');
-                    containerDiv.className = 'container';
+                    const productContainer = document.createElement('div');
+                    productContainer.className = 'product-container';
 
                     if (products[categoryName].length === 0) {
                         const noProductText = document.createElement('p');
-                        noProductText.innerText = 'មិនទាន់មានផលិតផល';
-                        noProductText.style.color = 'var(--tg-theme-hint-color, #888)';
-                        containerDiv.appendChild(noProductText);
+                        noProductText.textContent = 'មិនទាន់មានផលិតផលក្នុងប្រភេទនេះ';
+                        noProductText.style.color = 'var(--tg-hint)';
+                        productContainer.appendChild(noProductText);
                     } else {
                         products[categoryName].forEach(product => {
                             const isOutOfStock = product.stockCount === 0;
-                            const stockText = isOutOfStock ? 'អស់ស្តុកហើយ' : `នៅសល់: ${product.stockCount} គណនី`;
-                            const stockClass = isOutOfStock ? 'stock-count out-of-stock' : 'stock-count';
                             const buttonDisabled = isOutOfStock ? 'disabled' : '';
-                            const buttonText = isOutOfStock ? 'អស់ស្តុក' : 'ទិញឥឡូវនេះ 🛒';
+                            const buttonText = isOutOfStock ? 'អស់ពីស្តុក' : 'ទិញ';
 
                             const cardHTML = `
-                                <div class="card" data-price="${product.price}" data-name="${product.name}" data-stock="${product.stockCount}">
+                                <div class="card">
                                     <img src="${product.imageUrl}" alt="${product.name}">
                                     <h3>${product.name}</h3>
-                                    <p>${product.description}</p>
-                                    <div class="price">$${product.price}</div>
-                                    <div class="${stockClass}">${stockText}</div>
-                                    <div class="quantity-selector">
-                                        <button onclick="changeQty(this, -1)" ${buttonDisabled}>-</button>
-                                        <span class="quantity">1</span>
-                                        <button onclick="changeQty(this, 1)" ${buttonDisabled}>+</button>
-                                    </div>
-                                    <button onclick="showPaymentModal(this)" ${buttonDisabled}>${buttonText}</button>
+                                    <div class="price">$${parseFloat(product.price).toFixed(2)}</div>
+                                    <button onclick="buyItem('${product.name}', ${product.price})" ${buttonDisabled}>${buttonText}</button>
                                 </div>
                             `;
-                            containerDiv.innerHTML += cardHTML;
+                            productContainer.innerHTML += cardHTML;
                         });
                     }
                     
-                    categoryDiv.appendChild(containerDiv);
+                    categoryDiv.appendChild(productContainer);
                     productListDiv.appendChild(categoryDiv);
                 }
 
             } catch (error) {
                 console.error('Failed to load products:', error);
-                productListDiv.innerHTML = '<p style="text-align: center; color: red;">មិនអាចទាញយកទិន្នន័យបានទេ។ សូមព្យាយាមម្តងទៀត។</p>';
+                productListDiv.innerHTML = '<p style="text-align: center; color: #d32f2f;">❌ មិនអាចទាញយកទិន្នន័យបានទេ។ សូមប្រាកដថា Bot កំពុងដំណើរការ។</p>';
             }
         }
 
-        function changeQty(button, amount) {
-            const card = button.closest('.card');
-            const qtySpan = card.querySelector('.quantity');
-            const stock = parseInt(card.dataset.stock, 10);
-            let currentQty = parseInt(qtySpan.innerText, 10);
-            
-            let newQty = currentQty + amount;
-            if (newQty < 1) newQty = 1;
-            if (newQty > stock) newQty = stock;
-
-            qtySpan.innerText = newQty;
+        function loadOrders() { 
+            const orderListDiv = document.getElementById('order-list');
+            // ក្នុងកម្មវិធីពិត អ្នកអាច fetch ប្រវត្តិបញ្ជាទិញពី backend របស់អ្នក
+            orderListDiv.innerHTML = '<p style="text-align: center; color: var(--tg-hint);">មុខងារនេះកំពុងស្ថិតក្នុងការអភិវឌ្ឍ។</p>';
         }
 
-        let countdownInterval;
+        function loadProfile() {
+            const profileInfoDiv = document.getElementById('profile-info');
+            const user = tg.initDataUnsafe?.user;
 
-        function showPaymentModal(button) {
-            const card = button.closest('.card');
-            const name = card.dataset.name;
-            const price = parseFloat(card.dataset.price);
-            const quantity = parseInt(card.querySelector('.quantity').innerText, 10);
-            const totalPrice = (price * quantity).toFixed(2);
-
-            // Populate and show modal
-            const modal = document.getElementById('payment-modal');
-            document.getElementById('total-price').innerText = `$${totalPrice}`;
-            
-            // Set QR code image (replace with your actual QR code URL)
-            document.getElementById('qr-code-img').src = "https://pay.ababank.com/cv3/qr_code_placeholder.png";
-
-            modal.style.display = 'flex';
-
-            // Start countdown
-            let duration = 60 * 5; // 5 minutes
-            const timerDisplay = document.getElementById('countdown-timer');
-            
-            clearInterval(countdownInterval); // Clear any existing timer
-            countdownInterval = setInterval(() => {
-                const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
-                const seconds = (duration % 60).toString().padStart(2, '0');
-                timerDisplay.textContent = `${minutes}:${seconds}`;
-
-                if (--duration < 0) {
-                    clearInterval(countdownInterval);
-                    modal.style.display = 'none';
-                }
-            }, 1000);
-
-            // Handle payment confirmation
-            const confirmBtn = document.getElementById('confirm-payment-btn');
-            confirmBtn.onclick = () => {
-                buyItem(name, totalPrice);
-                clearInterval(countdownInterval);
-                modal.style.display = 'none';
-            };
-
-            // Close modal if clicked outside
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    clearInterval(countdownInterval);
-                    modal.style.display = 'none';
-                }
-            };
+            if (user) {
+                profileInfoDiv.innerHTML = `
+                    <p><strong>ID:</strong> ${user.id}</p>
+                    <p><strong>ឈ្មោះ:</strong> ${user.first_name} ${user.last_name || ''}</p>
+                    <p><strong>Username:</strong> ${user.username ? '@' + user.username : 'មិនមាន'}</p>
+                `;
+            } else {
+                profileInfoDiv.innerHTML = '<p style="color: var(--tg-hint);">មិនអាចទាញយកព័ត៌មានអ្នកប្រើប្រាស់បានទេ។</p>';
+            }
         }
 
         // មុខងារផ្ញើទិន្នន័យទៅ Bot ពេលចុចទិញ
-        function buyItem(item, price) {
-            const data = {
-                item: item,
-                price: price
-            };
-            tg.sendData(JSON.stringify(data));
+        function buyItem(itemName, itemPrice) {
+            // បង្ហាញ Confirmation popup របស់ Telegram
+            tg.showConfirm(`តើអ្នកពិតជាចង់ទិញ "${itemName}" ក្នុងតម្លៃ $${itemPrice.toFixed(2)} មែនទេ?`, (confirmed) => {
+                if (confirmed) {
+                    const data = {
+                        item: itemName,
+                        price: itemPrice
+                    };
+                    // ផ្ញើទិន្នន័យទៅ Bot
+                    tg.sendData(JSON.stringify(data));
+                }
+            });
         }
 
-        // ហៅមុខងារដើម្បីចាប់ផ្តើមទាញយកផលិតផលពេលទំព័របើក
-        document.addEventListener('DOMContentLoaded', loadProducts);
+        // ធ្វើឱ្យ Main Button របស់ Telegram បង្ហាញ និងដំណើរការ
+        // ឧទាហរណ៍៖ បង្ហាញប៊ូតុង "View Cart"
+        /*
+        tg.MainButton.setText("View Cart");
+        tg.MainButton.show();
+        tg.onEvent('mainButtonClicked', function(){
+            tg.showAlert("Main Button Clicked!");
+        });
+        */
+
     </script>
 </body>
 </html>
